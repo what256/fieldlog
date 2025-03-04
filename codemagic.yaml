@@ -16,11 +16,11 @@ workflows:
         - keystore_path
       vars:
         PACKAGE_NAME: "com.yourcompany.fieldlog"
+      flutter: none # Explicitly tell Codemagic this is not a Flutter project
     scripts:
       - name: Install dependencies
         script: |
           npm install
-          npm ci
           
       - name: Setup Gradle properties
         script: |
@@ -64,16 +64,29 @@ workflows:
       cocoapods: default
       vars:
         BUNDLE_ID: "com.yourcompany.fieldlog"
+      flutter: none # Explicitly tell Codemagic this is not a Flutter project
     scripts:
       - name: Install dependencies
         script: |
           npm install
-          npm ci
           
       - name: Install CocoaPods dependencies
         script: |
           cd ios
           pod install
+          
+      - name: Set up code signing
+        script: |
+          echo $CM_CERTIFICATES | base64 --decode > /tmp/certificates.p12
+          echo $CM_PROVISIONING_PROFILE | base64 --decode > /tmp/profile.mobileprovision
+          keychain initialize
+          keychain add-certificates \
+              --certificate /tmp/certificates.p12 \
+              --certificate-password $CM_CERTIFICATE_PASSWORD
+          profile_path="/tmp/profile.mobileprovision"
+          PROFILE_UUID=$(grep -a -A 1 "UUID" ${profile_path} | grep -o "[-A-Za-z0-9]\{36\}")
+          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+          cp ${profile_path} ~/Library/MobileDevice/Provisioning\ Profiles/${PROFILE_UUID}.mobileprovision
           
       - name: Build iOS app
         script: |
@@ -82,6 +95,7 @@ workflows:
           xcodebuild -exportArchive -archivePath FieldLog.xcarchive -exportPath build -exportOptionsPlist exportOptions.plist
     artifacts:
       - ios/build/FieldLog.ipa
+      - $HOME/Library/Developer/Xcode/DerivedData/**/Build/**/*.dSYM
     publishing:
       email:
         recipients:
@@ -92,6 +106,38 @@ workflows:
         issuer_id: $APP_STORE_CONNECT_ISSUER_ID
         submit_to_testflight: true
         
+  # Workflow specifically for React Native (Expo) builds
+  react-native-expo:
+    name: React Native (Expo) Build
+    max_build_duration: 60
+    instance_type: mac_mini_m1
+    environment:
+      node: 18.15.0
+      npm: 9.5.0
+      flutter: none # Explicitly tell Codemagic this is not a Flutter project
+    triggering:
+      events:
+        - push
+        - tag
+        - pull_request
+      branch_patterns:
+        - pattern: main
+          include: true
+    scripts:
+      - name: Install dependencies
+        script: |
+          npm install
+          npm install -g expo-cli
+          
+      - name: Build for iOS and Android
+        script: |
+          expo build:android -t app-bundle --non-interactive
+          expo build:ios --non-interactive --no-publish
+          
+    artifacts:
+      - '*.aab'
+      - '*.ipa'
+        
   # Workflow for running tests
   unit-tests:
     name: Unit Tests
@@ -100,14 +146,34 @@ workflows:
     environment:
       node: 18.15.0
       npm: 9.5.0
+      flutter: none # Explicitly tell Codemagic this is not a Flutter project
     scripts:
       - name: Install dependencies
         script: |
           npm install
-          npm ci
           
       - name: Run tests
         script: |
           npm test
     artifacts:
       - coverage/**/* 
+
+  # Simple workflow - use this if others fail
+  simple-react-native:
+    name: Simple React Native Build
+    max_build_duration: 60
+    instance_type: mac_mini_m1
+    environment:
+      node: 18.15.0
+      npm: 9.5.0
+      flutter: none # Critical for React Native detection
+    scripts:
+      - name: Install dependencies
+        script: npm install
+      - name: Build Android
+        script: |
+          cd android
+          chmod +x ./gradlew
+          ./gradlew assembleDebug
+    artifacts:
+      - android/app/build/outputs/**/*.apk
