@@ -1,0 +1,58 @@
+# Uncomment the next line to define a global platform for your project
+platform :ios, '11.0'
+
+# Detect if the CLI plugin is available and use it if so
+begin
+  require_relative '../node_modules/react-native/scripts/react_native_pods'
+  require_relative '../node_modules/@react-native-community/cli-platform-ios/native_modules'
+  use_native_modules = true
+rescue LoadError
+  # Fallback if the packages are not available
+  puts "Warning: React Native modules not found, continuing with a simplified Podfile"
+  use_native_modules = false
+end
+
+target 'FieldLog' do
+  # Comment the next line if you don't want to use dynamic frameworks
+  # use_frameworks!
+
+  # React Native pods - only use if available
+  if use_native_modules
+    config = use_native_modules!
+    use_react_native!(
+      :path => config[:reactNativePath],
+      :hermes_enabled => false
+    )
+  else
+    # Manual pod definitions as fallback
+    pod 'React-Core', :path => '../node_modules/react-native/'
+    pod 'React-RCTActionSheet', :path => '../node_modules/react-native/Libraries/ActionSheetIOS'
+    pod 'React-RCTAnimation', :path => '../node_modules/react-native/Libraries/NativeAnimation'
+    pod 'React-RCTBlob', :path => '../node_modules/react-native/Libraries/Blob'
+    pod 'React-RCTImage', :path => '../node_modules/react-native/Libraries/Image'
+    pod 'React-RCTLinking', :path => '../node_modules/react-native/Libraries/LinkingIOS'
+    pod 'React-RCTNetwork', :path => '../node_modules/react-native/Libraries/Network'
+    pod 'React-RCTSettings', :path => '../node_modules/react-native/Libraries/Settings'
+    pod 'React-RCTText', :path => '../node_modules/react-native/Libraries/Text'
+    pod 'React-RCTVibration', :path => '../node_modules/react-native/Libraries/Vibration'
+  end
+
+  # Pods for FieldLog
+  
+  target 'FieldLogTests' do
+    inherit! :complete
+    # Pods for testing
+  end
+
+  post_install do |installer|
+    # React Native post install only available if modules are present
+    if use_native_modules
+      react_native_post_install(installer)
+      begin
+        __apply_Xcode_12_5_M1_post_install_workaround(installer)
+      rescue NameError
+        puts "Skipping M1 workaround - not available"
+      end
+    end
+  end
+end
