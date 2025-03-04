@@ -1,0 +1,113 @@
+workflows:
+  # Workflow for Android builds
+  android-build:
+    name: Android Build
+    max_build_duration: 60
+    instance_type: mac_mini_m1
+    environment:
+      groups:
+        # Add your group environment variables
+        - keystore_credentials
+        - firebase_credentials
+      node: 18.15.0
+      npm: 9.5.0
+      java: 11
+      android_signing:
+        - keystore_path
+      vars:
+        PACKAGE_NAME: "com.yourcompany.fieldlog"
+    scripts:
+      - name: Install dependencies
+        script: |
+          npm install
+          npm ci
+          
+      - name: Setup Gradle properties
+        script: |
+          echo "org.gradle.jvmargs=-Xmx2048m -XX:+HeapDumpOnOutOfMemoryError" >> "$CM_BUILD_DIR/android/gradle.properties"
+          echo "android.useAndroidX=true" >> "$CM_BUILD_DIR/android/gradle.properties"
+          echo "android.enableJetifier=true" >> "$CM_BUILD_DIR/android/gradle.properties"
+          
+      - name: Build Android App Bundle
+        script: |
+          cd android
+          ./gradlew bundleRelease
+          
+      - name: Build Android APK
+        script: |
+          cd android
+          ./gradlew assembleRelease
+    artifacts:
+      - android/app/build/outputs/bundle/release/app-release.aab
+      - android/app/build/outputs/apk/release/app-release.apk
+    publishing:
+      email:
+        recipients:
+          - user@example.com
+      google_play:
+        credentials: $GOOGLE_PLAY_SERVICE_ACCOUNT_CREDENTIALS
+        track: internal
+        
+  # Workflow for iOS builds
+  ios-build:
+    name: iOS Build
+    max_build_duration: 60
+    instance_type: mac_mini_m1
+    environment:
+      groups:
+        # Add your group environment variables
+        - app_store_credentials
+        - certificates
+      node: 18.15.0
+      npm: 9.5.0
+      xcode: latest
+      cocoapods: default
+      vars:
+        BUNDLE_ID: "com.yourcompany.fieldlog"
+    scripts:
+      - name: Install dependencies
+        script: |
+          npm install
+          npm ci
+          
+      - name: Install CocoaPods dependencies
+        script: |
+          cd ios
+          pod install
+          
+      - name: Build iOS app
+        script: |
+          cd ios
+          xcodebuild -workspace FieldLog.xcworkspace -scheme FieldLog -configuration Release -archivePath FieldLog.xcarchive archive
+          xcodebuild -exportArchive -archivePath FieldLog.xcarchive -exportPath build -exportOptionsPlist exportOptions.plist
+    artifacts:
+      - ios/build/FieldLog.ipa
+    publishing:
+      email:
+        recipients:
+          - user@example.com
+      app_store_connect:
+        api_key: $APP_STORE_CONNECT_PRIVATE_KEY
+        key_id: $APP_STORE_CONNECT_KEY_IDENTIFIER
+        issuer_id: $APP_STORE_CONNECT_ISSUER_ID
+        submit_to_testflight: true
+        
+  # Workflow for running tests
+  unit-tests:
+    name: Unit Tests
+    max_build_duration: 30
+    instance_type: mac_mini_m1
+    environment:
+      node: 18.15.0
+      npm: 9.5.0
+    scripts:
+      - name: Install dependencies
+        script: |
+          npm install
+          npm ci
+          
+      - name: Run tests
+        script: |
+          npm test
+    artifacts:
+      - coverage/**/* 
