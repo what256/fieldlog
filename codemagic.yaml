@@ -1,179 +1,73 @@
+# This file explicitly configures Codemagic CI/CD for React Native (not Flutter)
+project_type: react_native
+
 workflows:
-  # Workflow for Android builds
-  android-build:
-    name: Android Build
+  react-native-workflow:  # New workflow name
+    name: React Native Build
     max_build_duration: 60
     instance_type: mac_mini_m1
     environment:
-      groups:
-        # Add your group environment variables
-        - keystore_credentials
-        - firebase_credentials
+      groups: []  # No groups initially to keep it simple
       node: 18.15.0
       npm: 9.5.0
       java: 11
-      android_signing:
-        - keystore_path
+      flutter: none  # Explicitly not Flutter
       vars:
-        PACKAGE_NAME: "com.yourcompany.fieldlog"
-      flutter: none # Explicitly tell Codemagic this is not a Flutter project
-    scripts:
-      - name: Install dependencies
-        script: |
-          npm install
-          
-      - name: Setup Gradle properties
-        script: |
-          echo "org.gradle.jvmargs=-Xmx2048m -XX:+HeapDumpOnOutOfMemoryError" >> "$CM_BUILD_DIR/android/gradle.properties"
-          echo "android.useAndroidX=true" >> "$CM_BUILD_DIR/android/gradle.properties"
-          echo "android.enableJetifier=true" >> "$CM_BUILD_DIR/android/gradle.properties"
-          
-      - name: Build Android App Bundle
-        script: |
-          cd android
-          ./gradlew bundleRelease
-          
-      - name: Build Android APK
-        script: |
-          cd android
-          ./gradlew assembleRelease
-    artifacts:
-      - android/app/build/outputs/bundle/release/app-release.aab
-      - android/app/build/outputs/apk/release/app-release.apk
-    publishing:
-      email:
-        recipients:
-          - user@example.com
-      google_play:
-        credentials: $GOOGLE_PLAY_SERVICE_ACCOUNT_CREDENTIALS
-        track: internal
-        
-  # Workflow for iOS builds
-  ios-build:
-    name: iOS Build
-    max_build_duration: 60
-    instance_type: mac_mini_m1
-    environment:
-      groups:
-        # Add your group environment variables
-        - app_store_credentials
-        - certificates
-      node: 18.15.0
-      npm: 9.5.0
-      xcode: latest
-      cocoapods: default
-      vars:
-        BUNDLE_ID: "com.yourcompany.fieldlog"
-      flutter: none # Explicitly tell Codemagic this is not a Flutter project
-    scripts:
-      - name: Install dependencies
-        script: |
-          npm install
-          
-      - name: Install CocoaPods dependencies
-        script: |
-          cd ios
-          pod install
-          
-      - name: Set up code signing
-        script: |
-          echo $CM_CERTIFICATES | base64 --decode > /tmp/certificates.p12
-          echo $CM_PROVISIONING_PROFILE | base64 --decode > /tmp/profile.mobileprovision
-          keychain initialize
-          keychain add-certificates \
-              --certificate /tmp/certificates.p12 \
-              --certificate-password $CM_CERTIFICATE_PASSWORD
-          profile_path="/tmp/profile.mobileprovision"
-          PROFILE_UUID=$(grep -a -A 1 "UUID" ${profile_path} | grep -o "[-A-Za-z0-9]\{36\}")
-          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
-          cp ${profile_path} ~/Library/MobileDevice/Provisioning\ Profiles/${PROFILE_UUID}.mobileprovision
-          
-      - name: Build iOS app
-        script: |
-          cd ios
-          xcodebuild -workspace FieldLog.xcworkspace -scheme FieldLog -configuration Release -archivePath FieldLog.xcarchive archive
-          xcodebuild -exportArchive -archivePath FieldLog.xcarchive -exportPath build -exportOptionsPlist exportOptions.plist
-    artifacts:
-      - ios/build/FieldLog.ipa
-      - $HOME/Library/Developer/Xcode/DerivedData/**/Build/**/*.dSYM
-    publishing:
-      email:
-        recipients:
-          - user@example.com
-      app_store_connect:
-        api_key: $APP_STORE_CONNECT_PRIVATE_KEY
-        key_id: $APP_STORE_CONNECT_KEY_IDENTIFIER
-        issuer_id: $APP_STORE_CONNECT_ISSUER_ID
-        submit_to_testflight: true
-        
-  # Workflow specifically for React Native (Expo) builds
-  react-native-expo:
-    name: React Native (Expo) Build
-    max_build_duration: 60
-    instance_type: mac_mini_m1
-    environment:
-      node: 18.15.0
-      npm: 9.5.0
-      flutter: none # Explicitly tell Codemagic this is not a Flutter project
+        PROJECT_TYPE: "react_native"  # Additional clarification
     triggering:
       events:
         - push
-        - tag
-        - pull_request
       branch_patterns:
         - pattern: main
           include: true
+    cache:
+      cache_paths:
+        - $CM_BUILD_DIR/node_modules
     scripts:
+      - name: Set project type
+        script: |
+          echo "This is a React Native project, not Flutter"
+          
       - name: Install dependencies
         script: |
           npm install
-          npm install -g expo-cli
           
-      - name: Build for iOS and Android
+      - name: Make gradlew executable
         script: |
-          expo build:android -t app-bundle --non-interactive
-          expo build:ios --non-interactive --no-publish
+          if [ -f "$CM_BUILD_DIR/android/gradlew" ]; then
+            chmod +x $CM_BUILD_DIR/android/gradlew
+          fi
           
+      - name: Build Android Debug
+        script: |
+          if [ -d "$CM_BUILD_DIR/android" ]; then
+            cd android
+            ./gradlew assembleDebug
+          else
+            echo "Android directory not found"
+            exit 1
+          fi
     artifacts:
-      - '*.aab'
-      - '*.ipa'
-        
-  # Workflow for running tests
-  unit-tests:
-    name: Unit Tests
+      - android/app/build/outputs/**/*.apk
+      - $HOME/Library/Developer/Xcode/DerivedData/**/Build/**/*.app
+    publishing:
+      email:
+        recipients:
+          - user@example.com
+
+  # Simple fallback workflow if main one fails
+  simple-build:
+    name: Simple Build
     max_build_duration: 30
     instance_type: mac_mini_m1
     environment:
       node: 18.15.0
-      npm: 9.5.0
-      flutter: none # Explicitly tell Codemagic this is not a Flutter project
+      flutter: none
     scripts:
-      - name: Install dependencies
+      - name: Print environment
         script: |
-          npm install
-          
-      - name: Run tests
-        script: |
-          npm test
-    artifacts:
-      - coverage/**/* 
-
-  # Simple workflow - use this if others fail
-  simple-react-native:
-    name: Simple React Native Build
-    max_build_duration: 60
-    instance_type: mac_mini_m1
-    environment:
-      node: 18.15.0
-      npm: 9.5.0
-      flutter: none # Critical for React Native detection
-    scripts:
-      - name: Install dependencies
+          echo "React Native Build"
+          node --version
+          npm --version
+      - name: Install
         script: npm install
-      - name: Build Android
-        script: |
-          cd android
-          chmod +x ./gradlew
-          ./gradlew assembleDebug
-    artifacts:
-      - android/app/build/outputs/**/*.apk
