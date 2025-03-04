@@ -36,3 +36,86 @@ yarn-error.*
 *.tsbuildinfo
 
 app-example
+
+# Node
+node_modules/
+npm-debug.log
+yarn-error.log
+yarn-debug.log
+
+# Expo
+.expo/
+web-build/
+dist/
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.orig.*
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Testing
+coverage/
+jest-*
+
+# Android
+android/app/build/
+android/app/google-services.json
+android/keystores/debug.keystore
+android/.gradle
+android/captures/
+android/local.properties
+android/keystore.properties
+
+# iOS
+ios/Pods/
+ios/build/
+ios/*.xcworkspace
+ios/*.xcodeproj/*
+!ios/*.xcodeproj/project.pbxproj
+!ios/*.xcodeproj/xcshareddata/
+!ios/*.xcworkspace/contents.xcworkspacedata
+ios/Podfile.lock
+ios/GoogleService-Info.plist
+
+# Environment
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# IDE
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+.project
+.classpath
+.settings/
+
+# Temp files
+*.swp
+*.swo
+*.tmp
+*.temp
+*~
+
+# Build
+build/
+*.tsbuildinfo
+
+# Logs
+logs
+*.log
+
+# SSL
+*.pem
+*.cert
+*.key

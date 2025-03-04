@@ -1,50 +1,152 @@
-# Welcome to your Expo app 👋
+# FieldLog - Modern Note Taking App
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+A beautiful and feature-rich note-taking application built with React Native. FieldLog allows users to create, edit, and organize notes with rich content, location tagging, voice notes, and more.
 
-## Get started
+![FieldLog App](./screenshots/app-preview.png)
 
-1. Install dependencies
+## 🌟 Features
 
-   ```bash
+- **Modern UI**: Beautiful and responsive UI with smooth animations
+- **Rich Note Taking**: Create notes with formatted text, images, and attachments
+- **Location Tagging**: Add location information to your notes
+- **Voice Notes**: Record voice notes for quick capture
+- **Search & Filter**: Powerful search functionality with tag filtering
+- **Favorites**: Mark your most important notes as favorites
+- **Dark Mode**: Full support for light and dark themes
+- **Offline Support**: Work offline with full functionality
+
+## 🚀 Technology Stack
+
+- **React Native**: Core framework for cross-platform mobile development
+- **TypeScript**: Type-safe JavaScript for better development experience
+- **React Navigation**: Navigation and routing
+- **React Native Paper**: Material Design components
+- **SQLite**: Local database for offline storage
+- **Expo**: Development tooling and modules
+- **Codemagic**: CI/CD for mobile app deployment
+
+## 📋 Prerequisites
+
+- Node.js (v16+)
+- npm or yarn
+- React Native development environment setup
+- Expo CLI
+
+## 🔧 Installation
+
+1. Clone the repository:
+   ```
+   git clone https://github.com/yourusername/fieldlog.git
+   cd fieldlog
+   ```
+
+2. Install dependencies:
+   ```
    npm install
    ```
 
-2. Start the app
-
-   ```bash
-    npx expo start
+3. Start the development server:
+   ```
+   npm start
    ```
 
-In the output, you'll find options to open the app in a
+4. Run on your preferred platform:
+   ```
+   npm run android
+   # or
+   npm run ios
+   ```
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+## 🏗️ Project Structure
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
-
-```bash
-npm run reset-project
+```
+fieldlog/
+├── src/
+│   ├── components/       # Reusable components
+│   │   └── ui/           # UI components
+│   ├── context/          # React Context providers
+│   ├── db/               # Database configuration and queries
+│   ├── hooks/            # Custom React hooks
+│   ├── navigation/       # Navigation configuration
+│   ├── screens/          # Screen components
+│   ├── styles/           # Global styles and themes
+│   └── utils/            # Utility functions
+├── assets/               # Static assets like images
+├── android/              # Android-specific code
+├── ios/                  # iOS-specific code
+├── app.json              # Expo configuration
+├── App.tsx               # Entry point
+├── codemagic.yaml        # CI/CD configuration
+└── package.json          # Dependencies and scripts
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+## 🧪 Testing
 
-## Learn more
+Run tests with the following command:
 
-To learn more about developing your project with Expo, look at the following resources:
+```
+npm test
+```
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+## 📱 Building for Production
 
-## Join the community
+### Using Expo
 
-Join our community of developers creating universal apps.
+```
+expo build:android
+expo build:ios
+```
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+### Using Codemagic
+
+1. Push your changes to your repository
+2. Set up your project on Codemagic
+3. Configure the build settings as per the `codemagic.yaml` file
+4. Start the build process
+
+## 🔄 CI/CD with Codemagic
+
+We use Codemagic for continuous integration and deployment. The `codemagic.yaml` file in the root directory contains the configuration for building and publishing the app. Make sure to:
+
+1. Set up the required environment variables in Codemagic
+2. Configure signing certificates for both iOS and Android
+3. Set up distribution to App Store Connect and Google Play
+
+## 🎨 UI Components
+
+FieldLog includes a rich set of custom UI components:
+
+- **AnimatedButton**: Interactive button with scale and feedback animations
+- **Card**: Versatile card with multiple variants (default, elevated, outlined, flat)
+- **EmptyState**: Beautiful empty state component
+- **Illustrations**: SVG illustrations for various app states
+- **LoadingIndicator**: Customizable loading indicators
+- **PageTransition**: Smooth transitions between screens
+- **SearchBar**: Advanced search component with animations
+- **Tag**: Versatile tag/chip component with different variants
+- **Toast**: Toast notification system for user feedback
+
+## 🛠️ Customization
+
+### Themes
+
+You can customize the app's themes by modifying the theme files in `src/styles/theme.ts`. The app supports both light and dark modes.
+
+### Animations
+
+Customize animations by using the built-in animation utilities in `src/utils/AnimationUtils.ts`.
+
+## 📝 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 👥 Contributors
+
+- Your Name - Initial work
+
+## 🙏 Acknowledgments
+
+- React Native Team
+- Expo Team
+- React Native Paper Team
+- All the open source libraries used in this project
